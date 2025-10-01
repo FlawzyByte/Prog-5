@@ -1,0 +1,25 @@
+{
+  "name": "mini-battleship-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "backend/user-service",
+    "backend/room-service",
+    "backend/game-rules-service"
+  ],
+  "scripts": {
+    "dev:user": "npm run dev -w user-service",
+    "dev:room": "npm run dev -w room-service",
+    "dev:game": "npm run dev -w game-rules-service",
+    "lint": "eslint .",
+    "format": "prettier -w ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.5"
+  }
+}
+

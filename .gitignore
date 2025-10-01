@@ -1,0 +1,35 @@
+# Node / TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Tests / Coverage
+coverage/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Package managers / caches
+.pnpm-store/
+.npm/
+
+# Turborepo / build systems (optional if added later)
+.turbo/
+
+# Diagrams / backups
+*.bak
+
