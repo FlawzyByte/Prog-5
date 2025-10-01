@@ -1,4 +1,4 @@
-﻿# Mini Battleship (Monorepo)
+﻿# Mini Battleship
 
 ## Tech stack
 - Language/Monorepo: TypeScript end-to-end; npm or pnpm workspaces (Turborepo optional later)
