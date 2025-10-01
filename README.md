@@ -64,5 +64,5 @@ Client → Server
   - Payload: `{ "roomId": string, "winnerId": string }`
 
 ## Architecture diagram
-File: `docs/architecture/mini-battleship-architecture.drawio` (open in diagrams.net). Export PNG/SVG for slides.
+To be created later
 
