@@ -1,4 +1,4 @@
-﻿# Mini Battleship (Monorepo)
+﻿# Mini Battleship
 
 ## Tech stack
 - Language/Monorepo: TypeScript end-to-end; npm or pnpm workspaces (Turborepo optional later)
@@ -64,5 +64,5 @@ Client → Server
   - Payload: `{ "roomId": string, "winnerId": string }`
 
 ## Architecture diagram
-File: `docs/architecture/mini-battleship-architecture.drawio` (open in diagrams.net). Export PNG/SVG for slides.
+To be created later
 
