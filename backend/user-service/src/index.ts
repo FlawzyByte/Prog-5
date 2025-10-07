@@ -1,15 +1,15 @@
 import Fastify from 'fastify';
 import { z } from 'zod';
+import cors from '@fastify/cors';
 import { randomUUID } from 'crypto';
 
 const app = Fastify({ logger: true });
+await app.register(cors, { origin: true });
 
 app.get('/health', async () => ({ status: 'ok' }));
 
-// In-memory user store: id -> username
 const users = new Map<string, string>();
 
-// POST /users { username }
 app.post('/users', async (request, reply) => {
   const schema = z.object({ username: z.string().min(1) });
   const parsed = schema.safeParse(request.body);
@@ -21,7 +21,6 @@ app.post('/users', async (request, reply) => {
   return reply.send({ id, username: parsed.data.username });
 });
 
-// GET /users/:id
 app.get('/users/:id', async (request, reply) => {
   const id = (request.params as { id: string }).id;
   const username = users.get(id);

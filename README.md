@@ -1,4 +1,4 @@
-﻿# Mini Battleship
+﻿# Mini Battleship (Monorepo)
 
 ## Tech stack
 - Language/Monorepo: TypeScript end-to-end; npm or pnpm workspaces (Turborepo optional later)
@@ -63,6 +63,6 @@ Client → Server
 - `gameOver`
   - Payload: `{ "roomId": string, "winnerId": string }`
 
-## Architecture diagram
-To be created later
+ Architecture diagram
+Arch digram will be found in the docs/arch
 

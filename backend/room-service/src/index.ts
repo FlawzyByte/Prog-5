@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { z } from 'zod';
+import cors from '@fastify/cors';
 import { request as undiciRequest } from 'undici';
 
 type RoomState = {
@@ -19,10 +20,17 @@ async function validateUser(userServiceBaseUrl: string, userId: string): Promise
 }
 
 const app = Fastify({ logger: true });
+await app.register(cors, { origin: true });
 
 app.get('/health', async () => ({ status: 'ok' }));
 
-// POST /rooms { userId }
+app.get('/rooms/:roomId', async (request, reply) => {
+  const roomId = (request.params as { roomId: string }).roomId;
+  const room = rooms.get(roomId);
+  if (!room) return reply.code(404).send({ error: 'Room not found' });
+  return reply.send({ roomId, players: room.players, turn: room.turn });
+});
+
 app.post('/rooms', async (request, reply) => {
   const schema = z.object({ userId: z.string().min(1) });
   const parsed = schema.safeParse(request.body);
@@ -38,7 +46,6 @@ app.post('/rooms', async (request, reply) => {
   return reply.send({ roomId, players: state.players, turn: state.turn });
 });
 
-// POST /rooms/:roomId/join { userId }
 app.post('/rooms/:roomId/join', async (request, reply) => {
   const roomId = (request.params as { roomId: string }).roomId;
   const schema = z.object({ userId: z.string().min(1) });

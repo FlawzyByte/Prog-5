@@ -5,12 +5,15 @@
   "workspaces": [
     "backend/user-service",
     "backend/room-service",
-    "backend/game-rules-service"
+    "backend/game-rules-service",
+    "clients/web"
   ],
   "scripts": {
     "dev:user": "npm run dev -w user-service",
     "dev:room": "npm run dev -w room-service",
     "dev:game": "npm run dev -w game-rules-service",
+    "dev:web": "npm run dev -w web-client",
+    "ws:smoke": "tsx scripts/ws-smoke.ts",
     "lint": "eslint .",
     "format": "prettier -w ."
   },
@@ -19,7 +22,9 @@
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "tsx": "^4.7.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "socket.io-client": "^4.7.5",
+    "undici": "^6.19.8"
   }
 }
 
