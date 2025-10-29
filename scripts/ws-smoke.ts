@@ -23,17 +23,11 @@ async function main() {
 
   await post(`${GAME}/game/${room.roomId}/place`, {
     playerId: alice.id,
-    shipCoords: [
-      { from: 'A1', to: 'A2' },
-      { from: 'B1', to: 'B2' },
-    ],
+    shipCoords: [{ from: 'A1', to: 'A1' }], // Single cell ship
   });
   await post(`${GAME}/game/${room.roomId}/place`, {
     playerId: bob.id,
-    shipCoords: [
-      { from: 'C1', to: 'C2' },
-      { from: 'D1', to: 'D2' },
-    ],
+    shipCoords: [{ from: 'B2', to: 'B2' }], // Single cell ship
   });
 
   const cAlice = io(GAME, { transports: ['websocket'] });
@@ -60,10 +54,15 @@ async function main() {
   cAlice.emit('joinRoom', { roomId: room.roomId, playerId: alice.id });
   cBob.emit('joinRoom', { roomId: room.roomId, playerId: bob.id });
 
-  // Fire once from alice
+  // Fire from alice (aiming for bob's ship at B2)
   setTimeout(() => {
-    cAlice.emit('fire', { roomId: room.roomId, playerId: alice.id, coord: 'C1' });
+    cAlice.emit('fire', { roomId: room.roomId, playerId: alice.id, coord: 'B2' });
   }, 500);
+  
+  // Fire from bob (aiming for alice's ship at A1)
+  setTimeout(() => {
+    cBob.emit('fire', { roomId: room.roomId, playerId: bob.id, coord: 'A1' });
+  }, 1000);
 
   setTimeout(() => {
     if (!done) {

@@ -38,11 +38,17 @@ function enumerateShipCells(ship: Ship): Coord[] {
   return cells;
 }
 
+type PlayerInfo = string | { id: string; username: string }
+
 async function fetchRoom(roomServiceBase: string, roomId: string) {
   const res = await undiciRequest(`${roomServiceBase}/rooms/${roomId}`);
   if (res.statusCode !== 200) return null;
   const body = await res.body.json();
-  return body as { roomId: string; players: string[]; turn: string };
+  // Convert player info to just IDs
+  const players = Array.isArray(body.players) 
+    ? body.players.map((p: PlayerInfo) => typeof p === 'string' ? p : p.id)
+    : body.players;
+  return { roomId: body.roomId, players, turn: body.turn } as { roomId: string; players: string[]; turn: string };
 }
 
 const app = Fastify({ logger: true });
@@ -172,6 +178,24 @@ app.post('/game/:roomId/fire', async (request, reply) => {
   return reply.send({ result, gameOver, nextTurn });
 });
 
+// POST /game/:roomId/surrender { playerId }
+app.post('/game/:roomId/surrender', async (request, reply) => {
+  const roomId = (request.params as { roomId: string }).roomId;
+  const schema = z.object({ playerId: z.string().min(1) });
+  const parsed = schema.safeParse(request.body);
+  if (!parsed.success) return reply.code(400).send({ error: 'Invalid body' });
+
+  const roomService = process.env.ROOM_SERVICE_URL || 'http://127.0.0.1:3002';
+  const room = await fetchRoom(roomService, roomId);
+  if (!room) return reply.code(404).send({ error: 'Room not found' });
+  if (!room.players.includes(parsed.data.playerId)) return reply.code(403).send({ error: 'Not in room' });
+
+  const opponentId = room.players.find((p) => p !== parsed.data.playerId);
+  if (!opponentId) return reply.code(409).send({ error: 'No opponent' });
+
+  return reply.send({ ok: true, surrendered: true, opponentId });
+});
+
 const port = Number(process.env.PORT || 3003);
 app
   .listen({ port, host: '0.0.0.0' })
@@ -190,10 +214,24 @@ app
         if (!room) return socket.emit('joinRoomAck', { error: 'Room not found' });
         if (!room.players.includes(p.data.playerId)) return socket.emit('joinRoomAck', { error: 'Not in room' });
         socket.join(p.data.roomId);
+        // Fetch full room info with usernames for display
+        const roomRes = await undiciRequest(`${roomService}/rooms/${p.data.roomId}`);
+        let roomWithUsernames;
+        if (roomRes.statusCode === 200) {
+          roomWithUsernames = await roomRes.body.json();
+        } else {
+          // Fallback: convert IDs to objects
+          roomWithUsernames = {
+            roomId: room.roomId,
+            players: room.players.map(id => ({ id, username: id })),
+            turn: room.turn
+          };
+        }
+        
         // Ack to joiner
-        socket.emit('joinRoomAck', { roomId: room.roomId, players: room.players, turn: room.turn });
+        socket.emit('joinRoomAck', roomWithUsernames);
         // Broadcast updated room state to all
-        socket.to(p.data.roomId).emit('roomUpdate', { roomId: room.roomId, players: room.players, turn: room.turn });
+        socket.to(p.data.roomId).emit('roomUpdate', roomWithUsernames);
       });
 
       socket.on('placeShip', async (msg) => {
@@ -242,6 +280,22 @@ app
           io.to(p.data.roomId).emit('turnChange', { roomId: p.data.roomId, playerId: nextTurn });
         }
         if (gameOver) io.to(p.data.roomId).emit('gameOver', { roomId: p.data.roomId, winnerId: p.data.playerId });
+      });
+
+      socket.on('surrender', async (msg) => {
+        const schema = z.object({ roomId: z.string(), playerId: z.string() });
+        const p = schema.safeParse(msg);
+        if (!p.success) return;
+        
+        const roomService = process.env.ROOM_SERVICE_URL || 'http://127.0.0.1:3002';
+        const room = await fetchRoom(roomService, p.data.roomId);
+        if (!room) return;
+        if (!room.players.includes(p.data.playerId)) return;
+        
+        const opponent = room.players.find((id) => id !== p.data.playerId);
+        if (opponent) {
+          io.to(p.data.roomId).emit('gameOver', { roomId: p.data.roomId, winnerId: opponent });
+        }
       });
     });
   })
